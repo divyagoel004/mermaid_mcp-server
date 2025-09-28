@@ -4,4 +4,7 @@ uvicorn==0.30.6
 pydantic==2.11.3
 fastapi-mcp==0.3.4
 mcp[cli]==1.9.4
+
 pyppeteer==2.0.0
+RUN apt-get update && \
+    apt-get install -y chromium
