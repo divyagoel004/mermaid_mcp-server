@@ -8,7 +8,7 @@ import uuid
 from fastapi_mcp import FastApiMCP
 import base64
 from cleanup_images import start_cleanup_daemon
-
+from fastapi import Request
 start_cleanup_daemon()
 app = FastAPI(title="Mermaid Renderer API")
 mcp = FastApiMCP(app, include_operations=["Mermaid_render"])
@@ -96,6 +96,7 @@ is_ready = False
 async def startup():
     global is_ready
     mcp.setup_server()
+
 
 
 
