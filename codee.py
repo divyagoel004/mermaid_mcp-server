@@ -23,11 +23,14 @@ class MermaidInput(BaseModel):
 
 
 
-# Create Puppeteer config if missing
+import os
+
 puppeteer_config_path = "puppeteer-config.json"
-if not os.path.exists(puppeteer_config_path):
-    with open(puppeteer_config_path, "w") as f:
-        f.write('{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}')
+if os.path.exists(puppeteer_config_path):
+    os.remove(puppeteer_config_path)
+
+with open(puppeteer_config_path, "w") as f:
+    f.write('{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}')
 
 @app.post("/render-mermaid/")
 def render_mermaid(data: MermaidInput, request: Request):
@@ -96,6 +99,7 @@ is_ready = False
 async def startup():
     global is_ready
     mcp.setup_server()
+
 
 
 
