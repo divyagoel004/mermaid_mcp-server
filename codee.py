@@ -46,7 +46,7 @@ def render_mermaid(data: MermaidInput, request: Request):
         try:
             result = subprocess.run(
                 [
-                    mmdc_path,
+                    "npx", "@mermaid-js/mermaid-cli",
                     "-i", input_file,
                     "-o", output_file,
                     "--outputFormat", "png",
@@ -92,3 +92,4 @@ is_ready = False
 async def startup():
     global is_ready
     mcp.setup_server()
+
