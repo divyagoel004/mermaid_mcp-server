@@ -31,13 +31,13 @@ if not os.path.exists(puppeteer_config_path):
 
 @app.post("/render-mermaid/")
 def render_mermaid(data: MermaidInput, request: Request):
-    # with tempfile.TemporaryDirectory() as tmpdir:
-    #     input_file = os.path.join(tmpdir, "diagram.mmd")
-    #     output_file = os.path.join(tmpdir, "diagram.png")
+    with tempfile.TemporaryDirectory() as tmpdir:
+        input_file = os.path.join(tmpdir, "diagram.mmd")
+        output_file = os.path.join(tmpdir, "diagram.png")
 
-    #     # Write the Mermaid code to file
-    #     with open(input_file, "w", encoding="utf-8") as f:
-    #         f.write(data.code.strip())
+        # Write the Mermaid code to file
+        with open(input_file, "w", encoding="utf-8") as f:
+            f.write(data.code.strip())
 
         # Run Mermaid CLI using npx
         try:
@@ -96,6 +96,7 @@ is_ready = False
 async def startup():
     global is_ready
     mcp.setup_server()
+
 
 
 
