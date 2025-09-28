@@ -21,7 +21,10 @@ base_url = os.getenv("BASE_URL", "")
 class MermaidInput(BaseModel):
     code: str
 
-
+@app.on_event("startup")
+async def startup():
+    if not os.path.exists("node_modules/puppeteer"):
+        subprocess.run(["npm", "install", "--save-dev", "puppeteer"], check=True)
 from fastapi import Request
 
 @app.post("/render-mermaid/", operation_id="Mermaid_render")
@@ -92,4 +95,5 @@ is_ready = False
 async def startup():
     global is_ready
     mcp.setup_server()
+
 
