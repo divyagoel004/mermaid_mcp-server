@@ -1,1 +1,0 @@
-# mermaid_mcp-server
