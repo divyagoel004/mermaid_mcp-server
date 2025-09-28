@@ -21,31 +21,25 @@ base_url = os.getenv("BASE_URL", "")
 class MermaidInput(BaseModel):
     code: str
 
-@app.on_event("startup")
-async def startup():
-    if not os.path.exists("node_modules/puppeteer"):
-        subprocess.run(["npm", "install", "--save-dev", "puppeteer"], check=True)
-from fastapi import Request
 
-@app.post("/render-mermaid/", operation_id="Mermaid_render")
+
+# Create Puppeteer config if missing
+puppeteer_config_path = "puppeteer-config.json"
+if not os.path.exists(puppeteer_config_path):
+    with open(puppeteer_config_path, "w") as f:
+        f.write('{"args": ["--no-sandbox", "--disable-setuid-sandbox"]}')
+
+@app.post("/render-mermaid/")
 def render_mermaid(data: MermaidInput, request: Request):
-    # mmdc_path = r"/usr/bin/mmdc"
-    import os
-
-    mmdc_path = os.path.join(os.getcwd(), "node_modules", ".bin", "mmdc")
-
-    puppeteer_config_path = "puppeteer-config.json"
-    if not os.path.exists(puppeteer_config_path):
-        with open(puppeteer_config_path, "w") as config_file:
-            config_file.write('{\n  "args": ["--no-sandbox", "--disable-setuid-sandbox"]\n}')
-
     with tempfile.TemporaryDirectory() as tmpdir:
         input_file = os.path.join(tmpdir, "diagram.mmd")
         output_file = os.path.join(tmpdir, "diagram.png")
 
+        # Write the Mermaid code to file
         with open(input_file, "w", encoding="utf-8") as f:
             f.write(data.code.strip())
 
+        # Run Mermaid CLI using npx
         try:
             result = subprocess.run(
                 [
@@ -63,19 +57,26 @@ def render_mermaid(data: MermaidInput, request: Request):
             raise HTTPException(status_code=500, detail="Mermaid rendering timed out.")
 
         if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Mermaid CLI error:\n{result.stderr}")
+            raise HTTPException(
+                status_code=500, 
+                detail=f"Mermaid CLI error:\n{result.stderr}"
+            )
 
         if not os.path.exists(output_file):
             raise HTTPException(status_code=500, detail="Output image not generated.")
 
+        # Encode PNG as base64
         with open(output_file, "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read()).decode("utf-8")
 
-        return {
-             encoded_string
-            
-        }
+        return {"image_base64": encoded_string}
 
+@app.get("/image/{file_id}")
+def get_rendered_image(file_id: str):
+    image_path = f"output_images/{file_id}.png"
+    if not os.path.exists(image_path):
+        raise HTTPException(status_code=404, detail="Image not found.")
+    return FileResponse(image_path, media_type="image/png")
 
 @app.get("/image/{file_id}")
 def get_rendered_image(file_id: str):
@@ -95,5 +96,6 @@ is_ready = False
 async def startup():
     global is_ready
     mcp.setup_server()
+
 
 
